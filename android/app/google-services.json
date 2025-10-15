@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "748679622271",
+    "project_id": "wms-tri-istreams",
+    "storage_bucket": "wms-tri-istreams.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:748679622271:android:6634df79f54e83ecffd94a",
+        "android_client_info": {
+          "package_name": "com.wmstriistreams"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAAO6d3LAvNS1APjXUJmFt9Fkgf0NM-0ZY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
