@@ -9,85 +9,95 @@ import { TextInput, Button } from "react-native-paper";
 import BackgroundGradient from "../../Components/BackgroundGradient";
 import { LocationService } from "../../Logics/LocationService";
 import FontAwesome6Icon from 'react-native-vector-icons/FontAwesome6';
-import { formatDate, formatTime } from '../../Utils/dataTimeUtils';
 import QRBarcodeScanner from "../../Components/QRBarcodeScanner";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import GenericListPopup from "../../Modal/GenericListPopup";
+import { useSnackbar } from "../../Context/SnackbarContext";
 
 const PutawayProcessScreen = () => {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const colors = theme.colors;
+  const { showSnackbar } = useSnackbar();
   const globalStyles = GlobalStyles(colors);
 
+  const [activeInput, setActiveInput] = useState(null);
+
+  // Material details fields
+  const [itemCode, setItemCode] = useState('');
   const [itemName, setItemName] = useState("");
+  const [uom, setUom] = useState("");
   const [qty, setQty] = useState("");
   const [materialBarcode, setMaterialBarcode] = useState("");
   const [locationBarcode, setLocationBarcode] = useState("");
-  const [modalMaterialVisible, setModalMaterialVisible] = useState(false);
-  const [modalLocationVisible, setModalLocationVisible] = useState(false);
 
-  const [step1Complete, setStep1Complete] = useState(false);
-  const [step2Complete, setStep2Complete] = useState(false);
-
-  // Location details fields
-  const [warehouse, setWarehouse] = useState("");
-  const [storeRack, setStoreRack] = useState("");
-  const [binArea, setBinArea] = useState("");
+  // Location details fields    
+  const [locationID, setLocationID] = useState(null);
+  const [storeLocation, setStoreLocation] = useState('');
+  const [rack, setRack] = useState('');
+  const [bin, setBin] = useState('');
 
   const [locationName, setLocationName] = useState('Fetching location...');
   const [coordinates, setCoordinates] = useState('');
   const [address, setAddress] = useState('');
-  const [entryDate, setEntryDate] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
+
+  const [materialList, setMaterialList] = useState([]);
+  const [storeLocationList, setstoreLocationList] = useState([]);
+
+  const [modalMaterialVisible, setModalMaterialVisible] = useState(false);
+  const [modalLocationVisible, setModalLocationVisible] = useState(false);
+
+  const [isPopupVisible, setPopupVisible] = useState(false);
+  const [isMatPopupVisible, setMatPopupVisible] = useState(false);
+
+  const [step1Complete, setStep1Complete] = useState(false);
+  const [step2Complete, setStep2Complete] = useState(false);
 
   // Static data for demonstration
   const taskId = "GRN-213083434";
 
+  const handleMatSelect = (material) => {
+    setItemCode(material.ITEM_CODE);
+    setItemName(material.ITEM_NAME);
+    setUom(material.UOM_STOCK);
+
+    setMatPopupVisible(false);
+  };
+
+  const handleStrLocSelect = (storeLocation) => {
+    setLocationID(storeLocation.LOCATION_ID);
+    setStoreLocation(storeLocation.STORE_LOCATION);
+    setRack(storeLocation.RACK_NAME);
+    setBin(storeLocation.BIN_NAME);
+
+    setPopupVisible(false);
+  };
+
   const handleMaterialScanned = (value) => {
     setMaterialBarcode(value);
-    setModalMaterialVisible(false);
 
-    // Check if all Step 1 fields are filled to complete the step
-    if (itemName.trim() && qty.trim() && value.trim()) {
-      setStep1Complete(true);
-      Alert.alert("Success", "Material barcode scanned successfully! You can now proceed to Step 2.");
+    // Try to find material in list by barcode
+    const foundMaterial = materialList.find(
+      (mat) => mat.ITEM_CODE === value || mat.SUB_MATERIAL_NO === value
+    );
+
+    if (foundMaterial) {
+      setItemCode(foundMaterial.ITEM_CODE);
+      setItemName(foundMaterial.ITEM_NAME);
+      setUom(foundMaterial.UOM_STOCK);
     } else {
-      Alert.alert("Info", "Material barcode scanned. Please fill Item Name and Qty to complete Step 1.");
+      showSnackbar('Material not found in list. Please select manually.', 'error');
     }
+
+    setModalMaterialVisible(false);
+    setActiveInput(null);
   };
 
   const handleLocationScanned = (value) => {
     setLocationBarcode(value);
-    setModalLocationVisible(false);
 
-    // Parse the location barcode and auto-fill the location fields
-    parseLocationBarcode(value);
-
-    // Check if location details are now complete
-    checkStep2Completion(value);
-  };
-
-  const parseLocationBarcode = (barcode) => {
-    // Simple parsing logic - adjust based on your barcode format
-    const parts = barcode.split('-');
-
-    if (parts.length >= 3) {
-      const warehouseValue = parts[0] || "";
-      const storeRackValue = parts[1] + "-" + (parts[2] || "");
-      const binAreaValue = parts.slice(3).join('-') || "";
-
-      setWarehouse(warehouseValue);
-      setStoreRack(storeRackValue);
-      setBinArea(binAreaValue);
-    } else {
-      // If barcode doesn't match expected format, just set it as warehouse
-      setWarehouse(barcode);
-    }
-  };
-
-  const checkStep2Completion = (scannedBarcode) => {
-    // Parse to get expected values
-    const parts = scannedBarcode.split('-');
+    // Parse barcode to populate location fields
+    const parts = value.split('-');
     let warehouseCheck, storeRackCheck, binAreaCheck;
 
     if (parts.length >= 3) {
@@ -95,79 +105,100 @@ const PutawayProcessScreen = () => {
       storeRackCheck = parts[1] + "-" + (parts[2] || "");
       binAreaCheck = parts.slice(3).join('-') || "";
     } else {
-      warehouseCheck = scannedBarcode;
+      warehouseCheck = value;
       storeRackCheck = "";
       binAreaCheck = "";
     }
 
-    // Check if all location fields will be filled
-    if (warehouseCheck.trim() && storeRackCheck.trim() && binAreaCheck.trim()) {
-      setStep2Complete(true);
-      Alert.alert("Success", "Location details confirmed successfully!");
+    // Try to find in store location list
+    const foundLocation = storeLocationList.find(
+      (loc) => loc.STORE_LOCATION === warehouseCheck
+    );
+
+    if (foundLocation) {
+      setLocationID(foundLocation.LOCATION_ID);
+      setStoreLocation(foundLocation.STORE_LOCATION);
+      setRack(foundLocation.RACK_NAME);
+      setBin(foundLocation.BIN_NAME);
+    } else {
+      showSnackbar('Location not found. Please select manually.', 'error');
     }
+
+    setModalLocationVisible(false);
+    setActiveInput(null);
+  };
+
+  // NEW: Handle remove selection for Step 1
+  const handleRemoveMaterialSelection = () => {
+    setItemCode('');
+    setItemName('');
+    setUom('');
+    setQty('');
+    setMaterialBarcode('');
+    setStep1Complete(false);
+    // Also reset Step 2 when Step 1 is cleared
+    handleRemoveLocationSelection();
+  };
+
+  // RENAMED: Handle remove selection for Step 2
+  const handleRemoveLocationSelection = () => {
+    setLocationBarcode('');
+    setLocationID(null);
+    setStoreLocation('');
+    setRack('');
+    setBin('');
+    setStep2Complete(false);
   };
 
   useEffect(() => {
     LocationService(setLocationName, setCoordinates, setAddress);
-
-    const now = new Date();
-    setEntryDate(formatDate(now));
-
-    const currentTimeFormatted = formatTime(now);
-
-    const oneHourLater = new Date(now);
-    oneHourLater.setHours(oneHourLater.getHours() + 1);
-    const oneHourLaterFormatted = formatTime(oneHourLater);
-
-    setStartTime(currentTimeFormatted);
-    setEndTime(oneHourLaterFormatted);
+    getMaterialData();
+    getStoreLocationData();
   }, []);
 
-  // Auto-check Step 1 completion when fields change
+  const getMaterialData = async () => {
+    try {
+      const storedData = await AsyncStorage.getItem('MaterialsList');
+
+      if (storedData !== null) {
+        const parsedData = JSON.parse(storedData);
+        setMaterialList(parsedData);
+      }
+    } catch (e) {
+      console.error('Failed to retrieve data:', e);
+    }
+  };
+
+  const getStoreLocationData = async () => {
+    try {
+      const storedData = await AsyncStorage.getItem('StoreLocationList');
+      if (storedData !== null) {
+        const parsedData = JSON.parse(storedData);
+        setstoreLocationList(parsedData);
+      }
+    } catch (e) {
+      console.error('Failed to retrieve data:', e);
+    }
+  };
+
+  // Auto-check Step 1
   useEffect(() => {
-    if (itemName.trim() && qty.trim() && materialBarcode.trim()) {
+    // Step 1 complete if item and qty entered (manual) OR barcode scanned
+    if (itemName.trim() && qty.trim() && (materialBarcode.trim() || itemCode.trim())) {
       setStep1Complete(true);
     } else {
       setStep1Complete(false);
     }
-  }, [itemName, qty, materialBarcode]);
+  }, [itemName, qty, materialBarcode, itemCode]);
 
-  // Auto-check Step 2 completion when location fields change
+  // Auto-check Step 2
   useEffect(() => {
-    if (warehouse.trim() && storeRack.trim() && binArea.trim()) {
+    if (storeLocation.trim() && rack.trim() && bin.trim()) {
       setStep2Complete(true);
     } else {
       setStep2Complete(false);
     }
-  }, [warehouse, storeRack, binArea]);
-
-  const handleConfirmPutaway = () => {
-    if (step1Complete && step2Complete) {
-      Alert.alert(
-        "Success",
-        `Item Putaway Confirmed!\n\nLocation Details:\nWarehouse: ${warehouse}\nStore/Rack: ${storeRack}\nBin/Area: ${binArea}`,
-        [
-          {
-            text: "OK",
-            onPress: () => {
-              // Reset form for next task
-              setItemName("");
-              setQty("");
-              setMaterialBarcode("");
-              setLocationBarcode("");
-              setWarehouse("");
-              setStoreRack("");
-              setBinArea("");
-              setStep1Complete(false);
-              setStep2Complete(false);
-            }
-          }
-        ]
-      );
-    } else {
-      Alert.alert("Error", "Please complete both Step 1 and Step 2 before confirming.");
-    }
-  };
+  }, [storeLocation, rack, bin]);
 
   return (
     <BackgroundGradient>
@@ -196,7 +227,7 @@ const PutawayProcessScreen = () => {
 
           {/* STEP 1: COLLECT ITEM */}
           <View style={[globalStyles.mt_10, globalStyles.p_10, globalStyles.borderRadius_10, {
-            backgroundColor: step1Complete ? colors.white : colors.card,
+            backgroundColor: colors.card,
             borderWidth: 2,
             borderColor: step1Complete ? colors.success : colors.primary,
           }]}>
@@ -227,56 +258,48 @@ const PutawayProcessScreen = () => {
               </View>
             </View>
 
-            {/* Item Name & Qty */}
-            <View style={[globalStyles.twoInputContainer1]}>
-              <View style={globalStyles.container1}>
-                <Text style={[globalStyles.subtitle_4, globalStyles.mb_5]}>
-                  Item Name
-                </Text>
-                <TextInput
-                  style={globalStyles.height_45}
-                  mode="outlined"
-                  theme={theme}
-                  value={itemName}
-                  onChangeText={setItemName}
-                  disabled={step1Complete}
-                />
-              </View>
-
-              <View style={globalStyles.container2}>
-                <Text style={[globalStyles.subtitle_4, globalStyles.mb_5]}>
-                  Qty
-                </Text>
-                <TextInput
-                  style={globalStyles.height_45}
-                  mode="outlined"
-                  theme={theme}
-                  value={qty}
-                  onChangeText={setQty}
-                  keyboardType="numeric"
-                  disabled={step1Complete}
-                />
-              </View>
+            {/* Item Name */}
+            <View>
+              <TextInput
+                mode="outlined"
+                theme={theme}
+                label="Item Name"
+                value={
+                  itemName
+                    ? `${itemName}`
+                    : itemName
+                }
+                onChangeText={setItemName}
+                showSoftInputOnFocus={false}
+                selectionHandleColor={colors.primary}
+                onPress={() => !step1Complete && setMatPopupVisible(true)}
+                disabled={step1Complete}
+                right={
+                  (itemName || materialBarcode) ? (
+                    <TextInput.Icon icon="close" onPress={handleRemoveMaterialSelection} />
+                  ) : null
+                }
+              />
             </View>
 
-            {/* Scanned Material Barcode Display */}
-            {materialBarcode ? (
-              <View style={[globalStyles.mt_10, globalStyles.p_10, globalStyles.borderRadius_10, {
-                backgroundColor: colors.surfaceVariant
-              }]}>
-                <Text style={[globalStyles.subtitle_4, globalStyles.mb_5]}>
-                  Scanned Material Barcode:
-                </Text>
-                <Text style={[globalStyles.subtitle_3, { color: colors.primary }]}>
-                  {materialBarcode}
-                </Text>
-              </View>
-            ) : null}
+            {/* Qty */}
+            <View>
+              <TextInput
+                style={{ width: "30%" }}
+                mode="outlined"
+                theme={theme}
+                label="Qty"
+                value={qty}
+                onChangeText={setQty}
+                keyboardType="numeric"
+                disabled={step1Complete}
+              />
+            </View>
           </View>
 
           {/* STEP 2: PUT TO LOCATION */}
           <View style={[globalStyles.mt_10, globalStyles.p_10, globalStyles.borderRadius_10, {
-            backgroundColor: step2Complete ? colors.white : colors.card,
+            backgroundColor: colors.card,
             borderWidth: 2,
             borderColor: step2Complete ? colors.success : !step1Complete ? colors.white : colors.primary,
             opacity: !step1Complete ? 0.6 : 1,
@@ -291,10 +314,6 @@ const PutawayProcessScreen = () => {
                 </Text>
               </View>
 
-              {step2Complete && (
-                <Ionicons name="checkmark-circle" size={24} color={colors.success} />
-              )}
-
               {/* Location Barcode */}
               <View style={[globalStyles.twoInputContainer1, globalStyles.justifyEnd]}>
                 <Button
@@ -305,7 +324,7 @@ const PutawayProcessScreen = () => {
                   onPress={() => setModalLocationVisible(true)}
                   disabled={!step1Complete || step2Complete}
                 >
-                  <Text style={{ color: !step1Complete ? colors.gray : colors.white }}>
+                  <Text style={{ color: colors.white }}>
                     Scan Location Barcode
                   </Text>
                 </Button>
@@ -314,65 +333,79 @@ const PutawayProcessScreen = () => {
 
             {/* Location Details Fields */}
             <View style={[globalStyles.mb_10]}>
-              <Text style={[globalStyles.subtitle_4, globalStyles.mb_5]}>
-                Location Details:
+              <Text style={[globalStyles.subtitle_4, globalStyles.mt_10]}>
+                Location Details :
               </Text>
 
               {/* Warehouse / Location */}
-              <View style={[globalStyles.mb_10]}>
+              <View>
                 <TextInput
-                  style={globalStyles.height_45}
                   mode="outlined"
+                  label="Store Location"
                   theme={theme}
-                  value={warehouse}
-                  onChangeText={setWarehouse}
-                  placeholder="Enter warehouse or location"
+                  value={storeLocation}
+                  onPress={() => step1Complete && !step2Complete && setPopupVisible(true)}
+                  showSoftInputOnFocus={false}
+                  onChangeText={setStoreLocation}
                   disabled={!step1Complete || step2Complete}
+                  right={
+                    (storeLocation || locationBarcode) ? (
+                      <TextInput.Icon icon="close" onPress={handleRemoveLocationSelection} />
+                    ) : null
+                  }
                 />
               </View>
 
               {/* Store / Rack */}
-              <View style={[globalStyles.mb_10]}>
+              <View>
                 <TextInput
-                  style={globalStyles.height_45}
                   mode="outlined"
+                  label="Rack"
                   theme={theme}
-                  value={storeRack}
-                  onChangeText={setStoreRack}
-                  placeholder="Enter store or rack number"
-                  disabled={!step1Complete || step2Complete}
+                  value={rack}
+                  onChangeText={setRack}
+                  editable={false}
                 />
               </View>
 
               {/* Bin / Area */}
-              <View style={[globalStyles.mb_10]}>
+              <View>
                 <TextInput
-                  style={globalStyles.height_45}
                   mode="outlined"
+                  label="Bin"
                   theme={theme}
-                  value={binArea}
-                  onChangeText={setBinArea}
-                  placeholder="Enter bin or area"
-                  disabled={!step1Complete || step2Complete}
+                  value={bin}
+                  onChangeText={setBin}
+                  editable={false}
                 />
               </View>
             </View>
-
-            {/* Scanned Location Barcode Display */}
-            {locationBarcode ? (
-              <View style={[globalStyles.mb_10, globalStyles.p_10, globalStyles.borderRadius_10, {
-                backgroundColor: colors.surfaceVariant
-              }]}>
-                <Text style={[globalStyles.subtitle_4, globalStyles.mb_5]}>
-                  Scanned Location Barcode:
-                </Text>
-                <Text style={[globalStyles.subtitle_3, { color: colors.primary }]}>
-                  {locationBarcode}
-                </Text>
-              </View>
-            ) : null}
           </View>
         </ScrollView>
+
+        <GenericListPopup
+          visible={isMatPopupVisible}
+          onClose={() => setMatPopupVisible(false)}
+          onSelect={handleMatSelect}
+          data={materialList}
+          mainLabelExtractor={(item) => item?.ITEM_CODE || ''}
+          labelExtractor={(item) => item.SUB_MATERIAL_NO || ''}
+          subLabelExtractor={(item) => item.ITEM_NAME || ''}
+          lastLabelExtractor={(item) => item.UOM_STOCK || ''}
+          searchKeyExtractor={(item) => `${item.ITEM_CODE || ''} ${item.ITEM_NAME || ''}`}
+        />
+
+        <GenericListPopup
+          visible={isPopupVisible}
+          onClose={() => setPopupVisible(false)}
+          onSelect={handleStrLocSelect}
+          data={storeLocationList}
+          mainLabelExtractor={(item) => item?.STORE_LOCATION || ''}
+          labelExtractor={(item) => item.SUB_MATERIAL_NO || ''}
+          subLabelExtractor={(item) => `Rack: ${item.RACK_NAME}` || ''}
+          lastLabelExtractor={(item) => `Bin: ${item.BIN_NAME}` || ''}
+          searchKeyExtractor={(item) => `${item.STORE_LOCATION || ''} ${item.RACK_NAME || ''}`}
+        />
 
         {/* Scanner Modals */}
         <Modal visible={modalMaterialVisible} animationType="slide">
@@ -394,13 +427,11 @@ const PutawayProcessScreen = () => {
           mode="contained"
           theme={theme}
           style={[globalStyles.mt_5, globalStyles.bottomButtonContainer]}
-          onPress={handleConfirmPutaway}
           disabled={!step1Complete || !step2Complete}
-          icon={() => <Ionicons name="checkmark-done" size={20} />}
+          icon={() => <Ionicons name="checkmark-done" size={20} color={colors.lightGray} />}
+          textColor={colors.white}
         >
-          <Text style={globalStyles.subtitle_4}>
-            Confirm Putaway
-          </Text>
+          Confirm Putaway
         </Button>
       </View>
     </BackgroundGradient>

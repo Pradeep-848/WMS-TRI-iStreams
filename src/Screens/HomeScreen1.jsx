@@ -144,42 +144,32 @@ const HomeScreen1 = () => {
                 },
             ],
         },
-        // {
-        //     image: require('../../assets/materialProcess/projectmaterialprocess.png'),
-        //     title: 'Material Receiving Process',
-        //     submodules: [
-        //         {
-        //             image: require('../../assets/materialProcess/suppliermaterialprocess.png'),
-        //             title: 'Supplier',
-        //             onPress: () => navigation.navigate('VehicleCheckInScreen'),
-        //         },
-        //         {
-        //             image: require('../../assets/materialProcess/clientmaterialprocess.png'),
-        //             title: 'Client',
-        //             onPress: () => navigation.navigate('MaterialArrivalSchedulingScreen'),
-        //         },
-        //         {
-        //             image: require('../../assets/materialProcess/projectmaterialprocess.png'),
-        //             title: 'Project',
-        //             onPress: () => navigation.navigate('MaterialArrival'),
-        //         },
-        //         {
-        //             image: require('../../assets/materialProcess/thirdpartyprocess.png'),
-        //             title: '3rd Party',
-        //             onPress: () => navigation.navigate('PreArrivalConfirmation'),
-        //         },
-        //     ],
-        // },
-        // {
-        //     image: require('../../assets/modules/others.jpg'),
-        //     title: 'Others',
-        //     submodules: [
-        //         {
-        //             image: require('../../assets/modules/add-location.jpg'),
-        //             title: 'Add Office / Project Location',
-        //         },
-        //     ],
-        // },
+        {
+            image: require('../../assets/materialProcess/materialreceivingprocess.png'),
+            title: 'Material Issue Process',
+            submodules: [
+                {
+                    image: require('../../assets/materialProcess/vehiclecheckin.png'),
+                    title: 'Material Issue List',
+                    onPress: () => navigation.navigate('MaterialIssueListScreen'),
+                },
+                {
+                    image: require('../../assets/materialProcess/vehiclecheckin.png'),
+                    title: 'Pick Material',
+                    onPress: () => navigation.navigate('PickMaterialScreen'),
+                },
+                {
+                    image: require('../../assets/materialProcess/vehiclecheckin.png'),
+                    title: 'Loading & Dispatch',
+                    onPress: () => navigation.navigate('LoadingAndDispatchScreen'),
+                },
+                {
+                    image: require('../../assets/materialProcess/vehiclecheckin.png'),
+                    title: 'Security Inspection',
+                    onPress: () => navigation.navigate('SecurityInspectionScreen'),
+                },
+            ],
+        }
     ];
 
     // dynamically add subtitle based on submodules

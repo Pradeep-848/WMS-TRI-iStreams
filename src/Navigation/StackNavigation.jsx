@@ -38,26 +38,18 @@ import SwitchMaterialRequestScreen from '../Screens/SwitchMaterialRequestScreen'
 import PendingRequests from '../Screens/PendingRequests';
 import AllRequests from '../Screens/AllRequests';
 import MRItemView from '../Screens/MRItemView';
-// import PreArrivalConfirmation from '../Screens/ThirdPartyMaterialReceivingProcess/PreArrivalConfirmation';
-// import ReceiverUnloadingAndVerfication from '../Screens/ThirdPartyMaterialReceivingProcess/ReceiverUnloadingAndVerfication';
-// import SystemEntry from '../Screens/ThirdPartyMaterialReceivingProcess/SystemEntry';
-// import ActiveReceiptScreen from '../Screens/SupplierMaterialReceivingProcess/ActiveReceiptScreen';
-// import MaterialReceivingandGrn from '../Screens/SupplierMaterialReceivingProcess/MaterialReceivingandGrn';
-// import PutawayProcessScreen from '../Screens/SupplierMaterialReceivingProcess/PutawayProcessScreen';
-// import VehicleCheckInScreen from '../Screens/SupplierMaterialReceivingProcess/VehicleCheckInScreen';
-// import MaterialArrivalSchedulingScreen from '../Screens/ClientMaterialReceivingProcess/MaterialArrivalSchedulingScreen';
-// import ActiveMaterialReceiptScreen from '../Screens/ClientMaterialReceivingProcess/ActiveMaterialReceiptScreen';
-// import VehicleInspectionScreen from '../Screens/ClientMaterialReceivingProcess/VehicleInspectionScreen';
-// import ProjectHeadConfirmationScreen from '../Screens/ClientMaterialReceivingProcess/ProjectHeadConfirmationScreen';
-// import GatePassCheckIn from '../Screens/ProjectMaterialReceivingProcess/GatePassCheckIn';
-// import MaterialArrival from '../Screens/ProjectMaterialReceivingProcess/MaterialArrival';
-// import MaterialReceivingScreen from '../Screens/ThirdPartyMaterialReceivingProcess/ReceiverUnloadingAndVerfication';
-// import ProjectConfirmation from '../Screens/ProjectMaterialReceivingProcess/ProjectConfirmation';
-// import ProjectActiveMaterialReceiptScreen from '../Screens/ProjectMaterialReceivingProcess/ProjectActiveMaterialReceiptScreen';
+
+{/* Material Receiving Process */ }
 import VehicleCheckInScreen from '../Screens/MaterialReceivingProcess/VehicleCheckInScreen';
 import ActiveReceiptScreen from '../Screens/MaterialReceivingProcess/ActiveReceiptScreen';
 import GrnDetailsScreen from '../Screens/MaterialReceivingProcess/GrnDetailsScreen';
 import PutawayProcessScreen from '../Screens/MaterialReceivingProcess/PutawayProcessScreen';
+
+{/* Material Issue Process */ }
+import MaterialIssueListScreen from '../Screens/MaterialIssueProcess/MaterialIssueListScreen';
+import PickMaterialScreen from '../Screens/MaterialIssueProcess/PickMaterialScreen';
+import LoadingAndDispatchScreen from '../Screens/MaterialIssueProcess/LoadingAndDispatchScreen';
+import SecurityInspectionScreen from '../Screens/MaterialIssueProcess/SecurityInspectionScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -100,29 +92,18 @@ const StackNavigation = () => {
                 <Stack.Screen name="PendingRequests" component={PendingRequests} />
                 <Stack.Screen name="AllRequests" component={AllRequests} />
                 <Stack.Screen name="MRItemView" component={MRItemView} />
-                {/* <Stack.Screen name="PreArrivalConfirmation" component={PreArrivalConfirmation} />
-                <Stack.Screen name="ReceiverUnloadingVerification" component={ReceiverUnloadingAndVerfication} />
-                <Stack.Screen name="SystemEntry" component={SystemEntry} />
-                <Stack.Screen name="ActiveReceiptScreen" component={ActiveReceiptScreen} />
-                <Stack.Screen name="MaterialReceivingandGrn" component={MaterialReceivingandGrn} />
-                <Stack.Screen name="PutawayProcessScreen" component={PutawayProcessScreen} />
-                <Stack.Screen name="VehicleCheckInScreen" component={VehicleCheckInScreen} />
-                <Stack.Screen name="MaterialReceivingScreen" component={MaterialReceivingScreen} />
-                <Stack.Screen name="MaterialArrivalSchedulingScreen" component={MaterialArrivalSchedulingScreen} />
-                <Stack.Screen name="ActiveMaterialReceiptScreen" component={ActiveMaterialReceiptScreen} />
-                <Stack.Screen name="VehicleInspectionScreen" component={VehicleInspectionScreen} />
-                <Stack.Screen name="ProjectHeadConfirmationScreen" component={ProjectHeadConfirmationScreen} />
-
-                <Stack.Screen name="GatePassCheckIn" component={GatePassCheckIn} />
-                <Stack.Screen name="MaterialArrival" component={MaterialArrival} />
-                <Stack.Screen name="ProjectActiveMaterialReceiptScreen" component={ProjectActiveMaterialReceiptScreen} />
-                <Stack.Screen name="ProjectConfirmation" component={ProjectConfirmation} /> */}
 
                 {/* Material Receiving Process */}
                 <Stack.Screen name="VehicleCheckInScreen" component={VehicleCheckInScreen} />
                 <Stack.Screen name="ActiveReceiptScreen" component={ActiveReceiptScreen} />
                 <Stack.Screen name="GrnDetailsScreen" component={GrnDetailsScreen} />
                 <Stack.Screen name="PutawayProcessScreen" component={PutawayProcessScreen} />
+
+                {/* Material Issue Process */}
+                <Stack.Screen name="MaterialIssueListScreen" component={MaterialIssueListScreen} />
+                <Stack.Screen name="PickMaterialScreen" component={PickMaterialScreen} />
+                <Stack.Screen name="LoadingAndDispatchScreen" component={LoadingAndDispatchScreen} />
+                <Stack.Screen name="SecurityInspectionScreen" component={SecurityInspectionScreen} />
 
                 {/* Animation Screens */}
                 <Stack.Screen

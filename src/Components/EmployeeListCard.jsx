@@ -215,7 +215,7 @@ const EmployeeListCard = ({ showChangeButton = true, onEmployeeChange }) => {
     const [popupVisible, setPopupVisible] = useState(false);
     const [allEmployees, setAllEmployees] = useState([]);
 
-    // 🔹 load employees from AsyncStorage
+    // load employees from AsyncStorage
     const getEmpData = async () => {
         setEmpCardLoading(true);
         try {
@@ -252,7 +252,7 @@ const EmployeeListCard = ({ showChangeButton = true, onEmployeeChange }) => {
         getEmpData();
     }, []);
 
-    // 🔹 handle selecting employee from popup
+    // handle selecting employee from popup
     const handleEmployeeSelect = async (employee) => {
         setEmpCardLoading(true);
         setPopupVisible(false);
@@ -296,13 +296,13 @@ const EmployeeListCard = ({ showChangeButton = true, onEmployeeChange }) => {
                                 source={
                                     item.EMP_IMAGE
                                         ? {
-                                              uri: item.EMP_IMAGE.startsWith('data:image')
-                                                  ? item.EMP_IMAGE
-                                                  : `data:image/png;base64,${item.EMP_IMAGE.replace(
-                                                        /(\r\n|\n|\r)/gm,
-                                                        '',
-                                                    )}`,
-                                          }
+                                            uri: item.EMP_IMAGE.startsWith('data:image')
+                                                ? item.EMP_IMAGE
+                                                : `data:image/png;base64,${item.EMP_IMAGE.replace(
+                                                    /(\r\n|\n|\r)/gm,
+                                                    '',
+                                                )}`,
+                                        }
                                         : require('../../assets/images.png')
                                 }
                                 style={globalStyles.empImageInList}
@@ -341,7 +341,7 @@ const EmployeeListCard = ({ showChangeButton = true, onEmployeeChange }) => {
                 />
             )}
 
-            {/* 🔹 Popup with all employees */}
+            {/* Popup with all employees */}
             <GenericListPopup
                 visible={popupVisible}
                 onClose={() => setPopupVisible(false)}
